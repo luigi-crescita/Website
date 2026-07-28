@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { MessageSquare, Repeat2, RefreshCw, UserCheck, X, type LucideIcon } from "lucide-react";
 import { LiquidGlassCard } from "@/components/kokonutui/liquid-glass-card";
 import { useScrollReveal } from "@/lib/use-scroll-reveal";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 type Capability = {
   icon: LucideIcon;
@@ -13,45 +14,18 @@ type Capability = {
   solution: string;
 };
 
-const CAPABILITIES: Capability[] = [
-  {
-    icon: UserCheck,
-    title: "Lead Capture & Qualification",
-    problem: "A form fill sits in an inbox for hours before anyone reads it — by then the prospect has already called someone else.",
-    solution:
-      "Every form submission, DM, or call transcript is parsed and scored against your criteria the moment it arrives, then routed to the right list — no one waits on a human to triage it.",
-  },
-  {
-    icon: MessageSquare,
-    title: "AI Chatbots",
-    problem: "Visitors land on your site at 11pm with a question, get no answer, and leave.",
-    solution:
-      "A chatbot trained on your services, pricing, and FAQs holds the conversation, qualifies intent, and books a call straight onto your calendar — responds within seconds, any hour.",
-  },
-  {
-    icon: RefreshCw,
-    title: "CRM Automation",
-    problem: "Lead data lives across a form tool, an inbox, and a spreadsheet that don't talk to each other, so half of it never makes it into the CRM.",
-    solution:
-      "New leads, conversation history, and qualification scores sync into your CRM the instant they're captured — no double entry, no record left stale.",
-  },
-  {
-    icon: Repeat2,
-    title: "Follow-up Sequencing",
-    problem: "A lead goes quiet after one message and nobody circles back until the trail's gone cold.",
-    solution:
-      "Automated sequences trigger on specific signals — a missed call, an unopened quote, three days of silence — so every lead gets a next touch without anyone having to remember.",
-  },
-];
+const CAPABILITY_ICONS: LucideIcon[] = [UserCheck, MessageSquare, RefreshCw, Repeat2];
 
 function CapabilityOrb({
   capability,
   index,
   onOpen,
+  moreDetailSuffix,
 }: {
   capability: Capability;
   index: number;
   onOpen: () => void;
+  moreDetailSuffix: string;
 }) {
   const Icon = capability.icon;
   const alignEnd = index % 2 === 1;
@@ -76,7 +50,7 @@ function CapabilityOrb({
         >
           <button
             type="button"
-            aria-label={`${capability.title} — more detail`}
+            aria-label={`${capability.title} — ${moreDetailSuffix}`}
             onClick={onOpen}
             className="block cursor-pointer appearance-none rounded-full border-0 bg-transparent p-0"
           >
@@ -110,6 +84,12 @@ function CapabilityOrb({
 }
 
 export function Capabilities() {
+  const { dict } = useLanguage();
+  const CAPABILITIES: Capability[] = dict.capabilities.items.map((item, i) => ({
+    ...item,
+    icon: CAPABILITY_ICONS[i],
+  }));
+
   const sectionRef = useRef<HTMLElement>(null);
   const eyebrowRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLElement>(null);
@@ -149,7 +129,7 @@ export function Capabilities() {
       <div className="relative mx-auto w-full max-w-6xl px-6 py-24 sm:px-10 sm:py-32">
         <div className="max-w-xl">
           <span ref={eyebrowRef} className="block font-mono text-xs tracking-[0.2em] text-brand-2 uppercase">
-            What I Build
+            {dict.capabilities.eyebrow}
           </span>
           <h2
             ref={(el) => {
@@ -157,7 +137,7 @@ export function Capabilities() {
             }}
             className="mt-4 text-3xl font-semibold tracking-tight text-balance sm:text-4xl"
           >
-            Systems that do the follow-up so you don&apos;t have to.
+            {dict.capabilities.heading}
           </h2>
         </div>
 
@@ -169,7 +149,12 @@ export function Capabilities() {
                 orbWrapRefs.current[index] = el;
               }}
             >
-              <CapabilityOrb capability={capability} index={index} onOpen={() => setOpenIndex(index)} />
+              <CapabilityOrb
+                capability={capability}
+                index={index}
+                onOpen={() => setOpenIndex(index)}
+                moreDetailSuffix={dict.capabilities.moreDetailSuffix}
+              />
             </div>
           ))}
         </div>
@@ -195,7 +180,7 @@ export function Capabilities() {
             >
               <button
                 type="button"
-                aria-label="Close"
+                aria-label={dict.capabilities.closeAriaLabel}
                 onClick={() => setOpenIndex(null)}
                 className="absolute top-5 right-5 text-muted-foreground transition-colors duration-200 ease-signature hover:text-foreground"
               >

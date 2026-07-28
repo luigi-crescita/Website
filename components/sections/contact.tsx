@@ -5,6 +5,7 @@ import { ArrowUpRight, Mail } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useScrollReveal } from "@/lib/use-scroll-reveal";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 const EMAIL = "luigi@crescitaestetica.it";
 
@@ -14,6 +15,7 @@ const SOCIAL_LINKS = [
 ];
 
 export function Contact() {
+  const { dict } = useLanguage();
   const sectionRef = useRef<HTMLElement>(null);
   const eyebrowRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLElement>(null);
@@ -32,7 +34,7 @@ export function Contact() {
     <section id="contact" ref={sectionRef} className="border-t border-border">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center px-6 py-24 text-center sm:px-10 sm:py-32">
         <span ref={eyebrowRef} className="block font-mono text-xs tracking-[0.2em] text-brand-2 uppercase">
-          Get In Touch
+          {dict.contact.eyebrow}
         </span>
 
         <h2
@@ -41,7 +43,7 @@ export function Contact() {
           }}
           className="mt-4 max-w-xl text-3xl font-semibold tracking-tight text-balance sm:text-4xl"
         >
-          Let&apos;s talk about what you need.
+          {dict.contact.heading}
         </h2>
 
         <p
@@ -50,7 +52,7 @@ export function Contact() {
           }}
           className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground"
         >
-          No forms, no funnels — send a message and I&apos;ll reply directly.
+          {dict.contact.paragraph}
         </p>
 
         <div
@@ -70,7 +72,7 @@ export function Contact() {
             )}
           >
             <Mail className="size-4 transition-transform duration-300 ease-signature group-hover/cta:-translate-y-0.5" />
-            Send a message
+            {dict.contact.cta}
           </a>
           <span className="font-mono text-sm text-muted-foreground">{EMAIL}</span>
         </div>

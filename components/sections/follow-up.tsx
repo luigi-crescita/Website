@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 type ChatMessage = {
   sender: "lead" | "ai";
@@ -13,28 +14,9 @@ type ChatMessage = {
 // Message 1 is the same lead carried over from the AI Qualification
 // table's fully-ticked WhatsApp row (urgent, warm, first-time, wants a
 // scheduled appointment) — this conversation is that lead following through.
-const MESSAGES: ChatMessage[] = [
-  {
-    sender: "lead",
-    text: "Hi! I saw your page and I'd love to book an appointment — is there any availability this week? This would be my first time coming in!",
-    time: "10:00 AM",
-  },
-  {
-    sender: "ai",
-    text: "Thanks for reaching out! We have availability tomorrow at 3:00 PM for an appointment — does that work for you?",
-    time: "10:05 AM",
-  },
-  {
-    sender: "lead",
-    text: "Perfect, see you tomorrow at 3!",
-    time: "10:07 AM",
-  },
-  {
-    sender: "ai",
-    text: "Thanks for stopping by today! Let us know if you need anything else.",
-    time: "4:00 PM",
-  },
-];
+// Text/time content comes from dict.followUp.messages/times; only the
+// sender (bubble side/color) is structural and lives here.
+const SENDERS: ChatMessage["sender"][] = ["lead", "ai", "lead", "ai"];
 
 // Scroll-progress choreography (fractions of this section's own pinned
 // range) — header appears, then each message slides up on its own step with
@@ -137,6 +119,12 @@ function TypingIndicator({ progress }: { progress: MotionValue<number> }) {
 }
 
 export function FollowUp() {
+  const { dict } = useLanguage();
+  const MESSAGES: ChatMessage[] = SENDERS.map((sender, i) => ({
+    sender,
+    text: dict.followUp.messages[i],
+    time: dict.followUp.times[i],
+  }));
   const sectionRef = useRef<HTMLElement>(null);
   const reducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
@@ -152,11 +140,9 @@ export function FollowUp() {
 
   const introText = (
     <div className="lg:w-72 lg:shrink-0">
-      <span className="block font-mono text-xs tracking-[0.2em] text-brand-2 uppercase">Follow-Up</span>
+      <span className="block font-mono text-xs tracking-[0.2em] text-brand-2 uppercase">{dict.followUp.eyebrow}</span>
       <p className="mt-4 text-xl leading-snug font-medium text-balance text-foreground/90 sm:text-2xl">
-        AI handles the entire conversation with the lead — qualifying, scheduling,
-        following up — without anyone needing to read a single message. Fully custom-built,
-        not a generic chatbot.
+        {dict.followUp.intro}
       </p>
     </div>
   );
@@ -173,13 +159,13 @@ export function FollowUp() {
           className="rounded-full"
         />
         <div>
-          <p className="text-sm font-semibold">WhatsApp Lead</p>
-          <p className="text-[11px] text-muted-foreground">Automated follow-up</p>
+          <p className="text-sm font-semibold">{dict.followUp.chatTitle}</p>
+          <p className="text-[11px] text-muted-foreground">{dict.followUp.chatSubtitle}</p>
         </div>
       </div>
 
       <div className="flex flex-col gap-3 px-4 py-5">
-        <DateDivider label="Today" progress={scrollYProgress} start={0} end={TODAY_DIVIDER_END} />
+        <DateDivider label={dict.followUp.today} progress={scrollYProgress} start={0} end={TODAY_DIVIDER_END} />
         <Bubble message={MESSAGES[0]} progress={scrollYProgress} start={MSG_STEPS[0].start} end={MSG_STEPS[0].end} />
         {/* Typing indicator overlays the same slot as message 2 — it fades
             out right as the reply fades in, a crossfade rather than its own
@@ -190,7 +176,7 @@ export function FollowUp() {
         </div>
         <Bubble message={MESSAGES[2]} progress={scrollYProgress} start={MSG_STEPS[2].start} end={MSG_STEPS[2].end} />
         <DateDivider
-          label="Tomorrow"
+          label={dict.followUp.tomorrow}
           progress={scrollYProgress}
           start={TOMORROW_DIVIDER_START}
           end={TOMORROW_DIVIDER_END}
@@ -212,14 +198,14 @@ export function FollowUp() {
               <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3">
                 <Image src="/images/whatsapp-business.png" alt="" aria-hidden width={60} height={60} className="rounded-full" />
                 <div>
-                  <p className="text-sm font-semibold">WhatsApp Lead</p>
-                  <p className="text-[11px] text-muted-foreground">Automated follow-up</p>
+                  <p className="text-sm font-semibold">{dict.followUp.chatTitle}</p>
+                  <p className="text-[11px] text-muted-foreground">{dict.followUp.chatSubtitle}</p>
                 </div>
               </div>
               <div className="flex flex-col gap-3 px-4 py-5">
                 <div className="my-1 flex justify-center">
                   <span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium text-muted-foreground">
-                    Today
+                    {dict.followUp.today}
                   </span>
                 </div>
                 {MESSAGES.slice(0, 3).map((m, i) => (
@@ -239,7 +225,7 @@ export function FollowUp() {
                 ))}
                 <div className="my-1 flex justify-center">
                   <span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium text-muted-foreground">
-                    Tomorrow
+                    {dict.followUp.tomorrow}
                   </span>
                 </div>
                 <div className="flex flex-col items-end">

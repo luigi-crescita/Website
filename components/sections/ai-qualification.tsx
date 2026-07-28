@@ -4,9 +4,9 @@ import { useRef } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { Check, X } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 type Platform = {
-  name: string;
   logo: string;
   /** "cover" crops a letterboxed source (transparent padding on the sides
    * of an off-square canvas) down to its actual mark — used for logos
@@ -27,16 +27,15 @@ type Platform = {
   crop?: { width: number; height: number; left: number; top: number };
 };
 
+// Order must stay aligned with dict.aiQualification.platformNames.
 const PLATFORMS: Platform[] = [
-  { name: "Email", logo: "gmail.png" },
-  { name: "Instagram DM", logo: "instagram.png", fit: "cover" },
-  { name: "Facebook Message", logo: "facebook.png" },
-  { name: "WhatsApp Message", logo: "whatsapp-business.png" },
-  { name: "Google Ads Lead", logo: "google-ads.png", crop: { width: 74, height: 42, left: -19, top: 2 } },
-  { name: "Telegram Message", logo: "telegram.png" },
+  { logo: "gmail.png" },
+  { logo: "instagram.png", fit: "cover" },
+  { logo: "facebook.png" },
+  { logo: "whatsapp-business.png" },
+  { logo: "google-ads.png", crop: { width: 74, height: 42, left: -19, top: 2 } },
+  { logo: "telegram.png" },
 ];
-
-const CRITERIA = ["Urgent", "Warm", "First Time", "Scheduled Appointment"];
 
 const QUALIFIED_ROW = 3; // WhatsApp Message — the one lead moving forward
 
@@ -52,7 +51,7 @@ const RESULTS: boolean[][] = [
 ];
 
 const ROWS = PLATFORMS.length;
-const COLS = CRITERIA.length;
+const COLS = 4; // criteria count — structural, same for every locale
 const TOTAL_CELLS = ROWS * COLS;
 
 // Scroll-progress choreography (fractions of this section's own pinned
@@ -109,7 +108,7 @@ function ResultCell({ row, col, progress }: { row: number; col: number; progress
   );
 }
 
-function ThinkingIndicator({ progress }: { progress: MotionValue<number> }) {
+function ThinkingIndicator({ progress, label }: { progress: MotionValue<number>; label: string }) {
   const opacity = useTransform(
     progress,
     [THINKING_IN_START, THINKING_IN_END, THINKING_OUT_START, THINKING_OUT_END],
@@ -118,7 +117,7 @@ function ThinkingIndicator({ progress }: { progress: MotionValue<number> }) {
 
   return (
     <motion.div style={{ opacity }} className="mb-8 flex items-center justify-center gap-2">
-      <span className="font-mono text-sm tracking-wide text-brand-2">Thinking</span>
+      <span className="font-mono text-sm tracking-wide text-brand-2">{label}</span>
       <span className="flex gap-0.5">
         {[0, 1, 2].map((i) => (
           <motion.span
@@ -136,6 +135,8 @@ function ThinkingIndicator({ progress }: { progress: MotionValue<number> }) {
 }
 
 export function AiQualification() {
+  const { dict } = useLanguage();
+  const CRITERIA = dict.aiQualification.criteria;
   const sectionRef = useRef<HTMLElement>(null);
   const reducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
@@ -152,11 +153,9 @@ export function AiQualification() {
 
   const introText = (
     <div className="lg:w-72 lg:shrink-0">
-      <span className="block font-mono text-xs tracking-[0.2em] text-brand-2 uppercase">Qualification</span>
+      <span className="block font-mono text-xs tracking-[0.2em] text-brand-2 uppercase">{dict.aiQualification.eyebrow}</span>
       <p className="mt-4 text-xl leading-snug font-medium text-balance text-foreground/90 sm:text-2xl">
-        AI reads every incoming request against your custom criteria and flags who needs
-        attention first — tagging the highest-priority leads as &ldquo;urgent&rdquo;
-        automatically.
+        {dict.aiQualification.intro}
       </p>
     </div>
   );
@@ -181,8 +180,9 @@ export function AiQualification() {
 
         {PLATFORMS.map((platform, row) => {
           const isQualified = row === QUALIFIED_ROW;
+          const platformName = dict.aiQualification.platformNames[row];
           return (
-            <div key={platform.name} className="relative">
+            <div key={platform.logo} className="relative">
               {isQualified && (
                 <motion.div
                   aria-hidden
@@ -230,7 +230,7 @@ export function AiQualification() {
                       />
                     )}
                   </div>
-                  <span className="text-sm font-medium text-white/90">{platform.name}</span>
+                  <span className="text-sm font-medium text-white/90">{platformName}</span>
                 </div>
                 {CRITERIA.map((_, col) => (
                   <ResultCell key={col} row={row} col={col} progress={scrollYProgress} />
@@ -252,7 +252,7 @@ export function AiQualification() {
           <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
             {introText}
             <div className="w-full lg:w-auto">
-              <div className="mb-8 text-center font-mono text-sm text-brand-2">Thinking...</div>
+              <div className="mb-8 text-center font-mono text-sm text-brand-2">{dict.aiQualification.thinking}...</div>
               {table}
             </div>
           </div>
@@ -273,7 +273,7 @@ export function AiQualification() {
           <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
             {introText}
             <div className="w-full lg:w-auto">
-              <ThinkingIndicator progress={scrollYProgress} />
+              <ThinkingIndicator progress={scrollYProgress} label={dict.aiQualification.thinking} />
               {table}
             </div>
           </div>

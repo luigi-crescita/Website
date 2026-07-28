@@ -11,9 +11,9 @@ import {
   type MotionValue,
 } from "motion/react";
 import { LiquidGlassCard } from "@/components/kokonutui/liquid-glass-card";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 type LeadSource = {
-  name: string;
   logo: string;
   /** Explicit width/height for icons whose natural shape is inherently
    * wider/shorter than the default ~30px square — e.g. meta.png's mark is
@@ -48,19 +48,20 @@ type LeadSource = {
 // consistently smaller/fainter than the rest — instagram, meta, and
 // google-ads — each for a different underlying reason, so each gets a
 // different fix below rather than one blanket size bump.
+// Order must stay aligned with dict.leadSourcesIntro.sourceNames.
 const LEAD_SOURCES: LeadSource[] = [
-  { name: "Email", logo: "gmail.png" },
-  { name: "Instagram DM", logo: "instagram.png", fit: "cover" },
-  { name: "Facebook Message", logo: "facebook.png" },
-  { name: "Website Form", logo: "website.png" },
-  { name: "TikTok DM", logo: "tiktok.png" },
-  { name: "Slack Message", logo: "slack.png" },
-  { name: "Meta Lead", logo: "meta.png", size: { width: 57, height: 32 } },
-  { name: "Google Ads Lead", logo: "google-ads.png", crop: { width: 51, height: 29, left: -12, top: 3 } },
-  { name: "WhatsApp Message", logo: "whatsapp-business.png" },
-  { name: "Form Submission", logo: "forms.png" },
-  { name: "Shopify Sale", logo: "shopify.png" },
-  { name: "Telegram Message", logo: "telegram.png" },
+  { logo: "gmail.png" },
+  { logo: "instagram.png", fit: "cover" },
+  { logo: "facebook.png" },
+  { logo: "website.png" },
+  { logo: "tiktok.png" },
+  { logo: "slack.png" },
+  { logo: "meta.png", size: { width: 57, height: 32 } },
+  { logo: "google-ads.png", crop: { width: 51, height: 29, left: -12, top: 3 } },
+  { logo: "whatsapp-business.png" },
+  { logo: "forms.png" },
+  { logo: "shopify.png" },
+  { logo: "telegram.png" },
 ];
 
 const TOTAL = LEAD_SOURCES.length;
@@ -141,12 +142,14 @@ function useConvergenceOffsets(containerRef: React.RefObject<HTMLDivElement | nu
 
 function LeadSourceCard({
   source,
+  name,
   index,
   progress,
   offset,
   cardRef,
 }: {
   source: LeadSource;
+  name: string;
   index: number;
   progress: MotionValue<number>;
   offset: Offset;
@@ -199,13 +202,14 @@ function LeadSourceCard({
         className="flex flex-col items-center justify-center gap-2.5 rounded-2xl bg-black/40 py-6"
       >
         {icon}
-        <span className="text-xs font-medium text-white/85">{source.name}</span>
+        <span className="text-xs font-medium text-white/85">{name}</span>
       </LiquidGlassCard>
     </motion.div>
   );
 }
 
 export function LeadSourcesIntro() {
+  const { dict } = useLanguage();
   const sectionRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -250,8 +254,9 @@ export function LeadSourcesIntro() {
     <div ref={gridRef} className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
       {LEAD_SOURCES.map((source, i) => (
         <LeadSourceCard
-          key={source.name}
+          key={source.logo}
           source={source}
+          name={dict.leadSourcesIntro.sourceNames[i]}
           index={i}
           progress={scrollYProgress}
           offset={offsets[i]}
@@ -265,9 +270,9 @@ export function LeadSourcesIntro() {
 
   const title = (
     <div className="mb-10 text-center">
-      <span className="block font-mono text-xs tracking-[0.2em] text-brand-2 uppercase">How It Works</span>
+      <span className="block font-mono text-xs tracking-[0.2em] text-brand-2 uppercase">{dict.leadSourcesIntro.eyebrow}</span>
       <h2 className="mt-3 text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
-        Leads arrive from everywhere.
+        {dict.leadSourcesIntro.heading}
       </h2>
     </div>
   );
@@ -278,7 +283,7 @@ export function LeadSourcesIntro() {
         <div className="mx-auto w-full max-w-5xl px-6 sm:px-10">
           {title}
           {grid}
-          <p className="mt-8 text-center font-mono text-sm tracking-wide text-muted-foreground">and more...</p>
+          <p className="mt-8 text-center font-mono text-sm tracking-wide text-muted-foreground">{dict.leadSourcesIntro.andMore}</p>
         </div>
       </section>
     );
@@ -311,7 +316,7 @@ export function LeadSourcesIntro() {
             style={{ opacity: andMoreOpacity, y: andMoreY }}
             className="mt-8 text-center font-mono text-sm tracking-wide text-muted-foreground"
           >
-            and more...
+            {dict.leadSourcesIntro.andMore}
           </motion.p>
         </div>
       </div>

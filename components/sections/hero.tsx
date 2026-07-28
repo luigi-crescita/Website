@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { DURATION, EASE_ANIME, STAGGER } from "@/lib/motion";
 import { splitWords } from "@/lib/text-reveal";
 import { LiquidGlassCard } from "@/components/kokonutui/liquid-glass-card";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 // The 3D scene touches WebGL on mount, so it's excluded from the server
 // render entirely rather than just deferring hydration.
@@ -18,6 +19,7 @@ const HeroScene = dynamic(() => import("@/components/hero-scene").then((m) => m.
 });
 
 export function Hero() {
+  const { dict } = useLanguage();
   const heroRef = useRef<HTMLElement>(null);
   const eyebrowRef = useRef<HTMLSpanElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -108,14 +110,14 @@ export function Hero() {
             ref={eyebrowRef}
             className="block font-mono text-xs tracking-[0.2em] text-brand-2 uppercase"
           >
-            AI Automation, Applied
+            {dict.hero.eyebrow}
           </span>
 
           <h1
             ref={headingRef}
             className="mt-6 text-4xl leading-[1.1] font-semibold tracking-tight text-balance sm:text-5xl md:text-6xl"
           >
-            Automate the work between a lead and a client.
+            {dict.hero.heading}
           </h1>
 
           <div ref={subRef} className="group/orb relative mt-6 w-fit">
@@ -139,7 +141,7 @@ export function Hero() {
             >
               <button
                 type="button"
-                aria-label="What I build, explained"
+                aria-label={dict.hero.orbAriaLabel}
                 className="block cursor-pointer appearance-none rounded-full border-0 bg-transparent p-0"
               >
                 <LiquidGlassCard
@@ -163,10 +165,7 @@ export function Hero() {
               ].join(" ")}
             >
               <div className="rounded-xl border border-border bg-background p-4">
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  I design AI-powered systems — lead capture, qualification, CRM
-                  sync — that turn manual follow-up into revenue on autopilot.
-                </p>
+                <p className="text-sm leading-relaxed text-muted-foreground">{dict.hero.orbTooltip}</p>
               </div>
             </div>
           </div>
@@ -182,14 +181,14 @@ export function Hero() {
                 "active:scale-[0.98]"
               )}
             >
-              Get in touch
+              {dict.hero.ctaPrimary}
               <ArrowRight className="size-4 transition-transform duration-300 ease-signature group-hover/cta:translate-x-1" />
             </a>
             <a
               href="#capabilities"
               className="group/link inline-flex items-center gap-1 text-sm font-medium text-muted-foreground underline decoration-border underline-offset-4 transition-colors duration-300 ease-signature hover:text-foreground"
             >
-              See what these systems do
+              {dict.hero.ctaSecondary}
               <ArrowRight className="size-3.5 transition-transform duration-300 ease-signature group-hover/link:translate-x-1" />
             </a>
           </div>
@@ -201,7 +200,7 @@ export function Hero() {
         className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 sm:flex"
       >
         <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
-          Scroll
+          {dict.hero.scrollCue}
         </span>
         <span className="h-8 w-px bg-gradient-to-b from-border to-transparent" />
       </div>

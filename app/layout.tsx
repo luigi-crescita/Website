@@ -3,6 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AmbientBackground } from "@/components/ambient-background";
+import { LanguageProvider } from "@/lib/i18n/language-context";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { dictionaries, defaultLocale } from "@/lib/i18n/dictionaries";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,10 +17,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Static metadata can't react to the client-side language toggle, so it's
+// pinned to the site's main language (Italian).
 export const metadata: Metadata = {
-  title: "Crescita Estetica — AI Automation for Growth-Focused Businesses",
-  description:
-    "AI-powered lead automation, chatbots, and CRM integration that turn manual follow-up into revenue on autopilot.",
+  title: dictionaries[defaultLocale].meta.title,
+  description: dictionaries[defaultLocale].meta.description,
 };
 
 export default function RootLayout({
@@ -27,12 +31,15 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang={defaultLocale}
       className={cn("dark h-full antialiased", geistSans.variable, geistMono.variable, "font-sans")}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <AmbientBackground />
-        {children}
+        <LanguageProvider>
+          <AmbientBackground />
+          <LanguageSwitcher />
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );
