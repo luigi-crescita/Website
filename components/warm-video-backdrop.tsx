@@ -1,29 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 
 /**
  * The single warm backdrop behind LeadSourcesIntro + AiQualification.
  *
  * It wraps both sections rather than living inside either one, so there is
- * exactly one <video> pinned across their combined scroll range — the two
- * sections read as one continuous scene with no seam or handoff where the
- * first ends and the second begins.
+ * exactly one <video> spanning their combined scroll range — the two sections
+ * read as one continuous scene with no seam or handoff where the first ends
+ * and the second begins.
  *
- * Playback is scroll-driven and wrapping: scroll position maps onto the clip's
- * timeline, so the footage holds still when the reader does, and scrolling
- * past the end restarts it instead of parking on the last frame.
+ * The clip runs on its own clock. Driving its timeline from scroll was tried
+ * and dropped: seeking on every scroll event never buffered cleanly, so
+ * playback is decoupled from scroll entirely and only the entrance is
+ * scroll-triggered.
  */
 
-/** Cycles of the clip across the wrapper's scroll range. The source is
- *  ~10.1s and the two sections scroll ~840vh between them, so two passes keep
- *  the footage moving at roughly reading pace while making the wrap itself
- *  visible — a single pass would just play through once and never loop. */
-const LOOPS = 2;
-
-/** Don't re-seek for sub-frame deltas; seeking is the expensive part. */
-const SEEK_EPSILON = 0.03;
+/** Just under real time, so the footage drifts behind the copy rather than
+ *  churning against it. */
+const PLAYBACK_RATE = 0.9;
 
 /** How far through the wrapper's approach (its top travelling from the bottom
  *  of the viewport to the top) the entrance commits, so the panel is fully up
@@ -35,16 +31,10 @@ export function WarmVideoBackdrop({ children }: { children: React.ReactNode }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const reducedMotion = useReducedMotion();
 
-  // Playback range — the wrapper's own pinned range, shared by both sections.
-  const { scrollYProgress } = useScroll({
-    target: wrapRef,
-    offset: ["start start", "end end"],
-  });
-  // Approach range, used only to latch the entrance. Driven from scroll rather
-  // than `whileInView` so the entrance rides the exact same measurement the
-  // two sections already animate from, instead of adding an IntersectionObserver
-  // whose timing against a sticky, pinned panel is a separate thing to reason
-  // about.
+  // Only the entrance reads scroll. Driven from the wrapper's approach rather
+  // than `whileInView` so it rides the same measurement the two sections
+  // already animate from, instead of adding an IntersectionObserver whose
+  // timing against a sticky, pinned panel is a separate thing to reason about.
   const { scrollYProgress: approachProgress } = useScroll({
     target: wrapRef,
     offset: ["start end", "start start"],
@@ -63,42 +53,34 @@ export function WarmVideoBackdrop({ children }: { children: React.ReactNode }) {
     return () => cancelAnimationFrame(frame);
   }, [approachProgress]);
 
-  const seekTo = useCallback(
-    (p: number) => {
-      const video = videoRef.current;
-      if (!video || reducedMotion) return;
-
-      const { duration } = video;
-      if (!Number.isFinite(duration) || duration === 0) return;
-
-      // The doubled modulo keeps a progress value that momentarily overshoots
-      // its 0..1 range from landing on a negative currentTime.
-      const wrapped = ((((p * LOOPS) % 1) + 1) % 1) * duration;
-      if (Math.abs(video.currentTime - wrapped) > SEEK_EPSILON) {
-        video.currentTime = wrapped;
-      }
-    },
-    [reducedMotion]
-  );
-
-  useMotionValueEvent(scrollYProgress, "change", seekTo);
-
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Never plays on its own clock — scroll is the only thing that advances it.
-    video.pause();
+    // A source load resets playbackRate, and browsers only honour it once the
+    // element actually has media to rate-control — so re-assert it on those
+    // events rather than once on mount.
+    const applyRate = () => {
+      video.playbackRate = PLAYBACK_RATE;
+    };
+    applyRate();
+    video.addEventListener("loadedmetadata", applyRate);
+    video.addEventListener("play", applyRate);
 
-    // Metadata routinely lands after the reader has already scrolled into the
-    // range; without this catch-up the clip would sit on frame 0 until the
-    // next scroll event happened to fire.
-    const onLoadedMetadata = () => seekTo(scrollYProgress.get());
-    video.addEventListener("loadedmetadata", onLoadedMetadata);
-    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) onLoadedMetadata();
+    if (reducedMotion) {
+      video.pause();
+    } else {
+      // The autoPlay attribute covers the normal case; this catches a mount
+      // that happened while the tab was backgrounded, where the initial play
+      // is deferred and never retried.
+      video.play().catch(() => {});
+    }
 
-    return () => video.removeEventListener("loadedmetadata", onLoadedMetadata);
-  }, [seekTo, scrollYProgress]);
+    return () => {
+      video.removeEventListener("loadedmetadata", applyRate);
+      video.removeEventListener("play", applyRate);
+    };
+  }, [reducedMotion]);
 
   return (
     <div ref={wrapRef} className="relative border-t border-border">
@@ -116,7 +98,9 @@ export function WarmVideoBackdrop({ children }: { children: React.ReactNode }) {
           >
             <video
               ref={videoRef}
+              autoPlay
               muted
+              loop
               playsInline
               preload="auto"
               className="h-full w-full object-cover"
