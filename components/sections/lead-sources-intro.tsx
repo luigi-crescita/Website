@@ -2,15 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import {
-  motion,
-  useMotionValueEvent,
-  useReducedMotion,
-  useScroll,
-  useTransform,
-  type MotionValue,
-} from "motion/react";
+import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { LiquidGlassCard } from "@/components/kokonutui/liquid-glass-card";
+import { SectionVideoBackground } from "@/components/section-video-background";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 type LeadSource = {
@@ -78,18 +72,16 @@ const CARD_TRANSITION = 0.058;
 const AND_MORE_IN_START = ENTRANCE_SPAN;
 const AND_MORE_IN_END = 0.463;
 
-// Part 2 (revised): video is full-bleed, ~2.5s of usable footage. All 12
-// cards converge to the exact same X/Y (a true stack) and then vanish
-// together — no card lingers solo — so the video's cut lines up with the
-// moment every card is gone. The title fades out here too, once we "get to
-// the video".
-const VIDEO_FADE_START = 0.637;
-const VIDEO_FADE_END = 0.672;
-const PULL_START = VIDEO_FADE_END;
+// Part 2: the copy (title + "and more") clears out first, then all 12 cards
+// converge to the exact same X/Y — a true stack — and vanish together, so no
+// card lingers solo. The background clip is no longer part of this
+// choreography: it runs on its own clock behind everything (see
+// SectionVideoBackground), so these are purely the copy/card beats.
+const COPY_OUT_START = 0.637;
+const COPY_OUT_END = 0.672;
+const PULL_START = COPY_OUT_END;
 const STACK_REACHED = 0.822; // all 12 fully overlapping
-const CULL_END = 0.857; // every card gone; video is frozen at its cut frame here too
-
-const VIDEO_CUT_SECONDS = 2.5; // never let the clip play past this
+const CULL_END = 0.857; // every card gone
 
 const ENTRANCE_STAGGER = (ENTRANCE_SPAN - CARD_TRANSITION) / (TOTAL - 1);
 
@@ -199,10 +191,10 @@ function LeadSourceCard({
     <motion.div ref={cardRef} style={{ opacity, scale, translateX: x, translateY: y }}>
       <LiquidGlassCard
         glassSize="sm"
-        className="flex flex-col items-center justify-center gap-2.5 rounded-2xl bg-black/40 py-6"
+        className="flex flex-col items-center justify-center gap-2.5 rounded-2xl bg-white/45 py-6 ring-black/10"
       >
         {icon}
-        <span className="text-xs font-medium text-white/85">{name}</span>
+        <span className="text-xs font-medium text-black/80">{name}</span>
       </LiquidGlassCard>
     </motion.div>
   );
@@ -212,7 +204,6 @@ export function LeadSourcesIntro() {
   const { dict } = useLanguage();
   const sectionRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const reducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -222,33 +213,15 @@ export function LeadSourcesIntro() {
 
   const titleOpacity = useTransform(
     scrollYProgress,
-    [0, TITLE_IN_END, VIDEO_FADE_START, VIDEO_FADE_END],
+    [0, TITLE_IN_END, COPY_OUT_START, COPY_OUT_END],
     [0, 1, 1, 0]
   );
   const andMoreOpacity = useTransform(
     scrollYProgress,
-    [AND_MORE_IN_START, AND_MORE_IN_END, VIDEO_FADE_START, VIDEO_FADE_END],
+    [AND_MORE_IN_START, AND_MORE_IN_END, COPY_OUT_START, COPY_OUT_END],
     [0, 1, 1, 0]
   );
   const andMoreY = useTransform(scrollYProgress, [AND_MORE_IN_START, AND_MORE_IN_END], [16, 0]);
-  const videoOpacity = useTransform(scrollYProgress, [VIDEO_FADE_START, VIDEO_FADE_END], [0, 1]);
-
-  useEffect(() => {
-    videoRef.current?.pause();
-  }, []);
-
-  // The video's own timeline is scroll-scrubbed too, not autoplaying on its
-  // own clock — otherwise stopping mid-scroll wouldn't hold, it'd keep
-  // playing toward its end on its own.
-  useMotionValueEvent(scrollYProgress, "change", (p) => {
-    const video = videoRef.current;
-    if (!video) return;
-    const local = Math.min(1, Math.max(0, (p - VIDEO_FADE_START) / (CULL_END - VIDEO_FADE_START)));
-    const target = local * VIDEO_CUT_SECONDS;
-    if (Math.abs(video.currentTime - target) > 0.03) {
-      video.currentTime = target;
-    }
-  });
 
   const grid = (
     <div ref={gridRef} className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -270,8 +243,8 @@ export function LeadSourcesIntro() {
 
   const title = (
     <div className="mb-10 text-center">
-      <span className="block font-mono text-xs tracking-[0.2em] text-brand-2 uppercase">{dict.leadSourcesIntro.eyebrow}</span>
-      <h2 className="mt-3 text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
+      <span className="block font-mono text-xs tracking-[0.2em] text-brand-2-dark uppercase">{dict.leadSourcesIntro.eyebrow}</span>
+      <h2 className="mt-3 text-2xl font-semibold tracking-tight text-balance text-black sm:text-3xl">
         {dict.leadSourcesIntro.heading}
       </h2>
     </div>
@@ -279,11 +252,15 @@ export function LeadSourcesIntro() {
 
   if (reducedMotion) {
     return (
-      <section id="how-it-works-intro" className="relative border-t border-border py-24 sm:py-32">
-        <div className="mx-auto w-full max-w-5xl px-6 sm:px-10">
+      <section
+        id="how-it-works-intro"
+        className="relative overflow-hidden border-t border-black/10 py-24 sm:py-32"
+      >
+        <SectionVideoBackground />
+        <div className="relative z-10 mx-auto w-full max-w-5xl px-6 sm:px-10">
           {title}
           {grid}
-          <p className="mt-8 text-center font-mono text-sm tracking-wide text-muted-foreground">{dict.leadSourcesIntro.andMore}</p>
+          <p className="mt-8 text-center font-mono text-sm tracking-wide text-black/60">{dict.leadSourcesIntro.andMore}</p>
         </div>
       </section>
     );
@@ -291,30 +268,15 @@ export function LeadSourcesIntro() {
 
   return (
     <section id="how-it-works-intro" ref={sectionRef} className="relative h-[480vh]">
-      <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden border-t border-border">
-        {/* Tunnel video — full background size now, behind the grid. */}
-        <motion.div aria-hidden style={{ opacity: videoOpacity }} className="pointer-events-none absolute inset-0 z-0">
-          <video
-            ref={videoRef}
-            muted
-            playsInline
-            preload="auto"
-            className="h-full w-full object-cover"
-            src="/videos/Background-3D-tunnel.mp4"
-          />
-          {/* Covers the "Kling AI" watermark (source clip's bottom-right
-              corner). Fixed pixel size rather than percentage, since the
-              container's aspect ratio now varies with viewport instead of
-              staying a fixed square. */}
-          <div className="pointer-events-none absolute right-0 bottom-0 h-20 w-48 bg-black/85 backdrop-blur-lg" />
-        </motion.div>
+      <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden border-t border-black/10">
+        <SectionVideoBackground />
 
         <div className="relative z-10 mx-auto w-full max-w-5xl px-6 sm:px-10">
           <motion.div style={{ opacity: titleOpacity }}>{title}</motion.div>
           {grid}
           <motion.p
             style={{ opacity: andMoreOpacity, y: andMoreY }}
-            className="mt-8 text-center font-mono text-sm tracking-wide text-muted-foreground"
+            className="mt-8 text-center font-mono text-sm tracking-wide text-black/60"
           >
             {dict.leadSourcesIntro.andMore}
           </motion.p>

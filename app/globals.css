@@ -13,6 +13,7 @@
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-2: var(--brand-2);
+  --color-brand-2-dark: var(--brand-2-dark);
   /* The one easing curve every animation on the site resolves to — Anime.js
      timelines reference the same curve via lib/motion.ts's EASE_ANIME, so
      CSS-driven hovers and JS-driven reveals move identically. */
@@ -95,6 +96,10 @@
   --brand: oklch(0.62 0.19 288); /* indigo/violet — primary accent */
   --brand-foreground: oklch(0.98 0 0);
   --brand-2: oklch(0.78 0.13 195); /* muted teal — secondary accent */
+  /* Same teal, dropped to a legible weight on the light/warm video
+     background used by the two scroll-pinned sections — brand-2 itself is
+     tuned for the dark ground everywhere else and disappears on warm. */
+  --brand-2-dark: oklch(0.46 0.11 195);
 }
 
 .dark {
@@ -133,6 +138,7 @@
   --brand: oklch(0.62 0.19 288);
   --brand-foreground: oklch(0.98 0 0);
   --brand-2: oklch(0.78 0.13 195);
+  --brand-2-dark: oklch(0.46 0.11 195);
 }
 
 @layer base {

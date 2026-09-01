@@ -4,6 +4,7 @@ import { useRef } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { Check, X } from "lucide-react";
+import { SectionVideoBackground } from "@/components/section-video-background";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 type Platform = {
@@ -100,9 +101,9 @@ function ResultCell({ row, col, progress }: { row: number; col: number; progress
   return (
     <motion.div style={{ opacity, scale }} className="flex items-center justify-center">
       {isMatch ? (
-        <Check className="size-4 text-brand-2" strokeWidth={2.5} />
+        <Check className="size-4 text-brand-2-dark" strokeWidth={2.5} />
       ) : (
-        <X className="size-4 text-muted-foreground/50" strokeWidth={2.5} />
+        <X className="size-4 text-black/30" strokeWidth={2.5} />
       )}
     </motion.div>
   );
@@ -117,14 +118,14 @@ function ThinkingIndicator({ progress, label }: { progress: MotionValue<number>;
 
   return (
     <motion.div style={{ opacity }} className="mb-8 flex items-center justify-center gap-2">
-      <span className="font-mono text-sm tracking-wide text-brand-2">{label}</span>
+      <span className="font-mono text-sm tracking-wide text-brand-2-dark">{label}</span>
       <span className="flex gap-0.5">
         {[0, 1, 2].map((i) => (
           <motion.span
             key={i}
             animate={{ opacity: [0.25, 1, 0.25] }}
             transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.18, ease: "easeInOut" }}
-            className="font-mono text-sm text-brand-2"
+            className="font-mono text-sm text-brand-2-dark"
           >
             .
           </motion.span>
@@ -153,8 +154,8 @@ export function AiQualification() {
 
   const introText = (
     <div className="lg:w-72 lg:shrink-0">
-      <span className="block font-mono text-xs tracking-[0.2em] text-brand-2 uppercase">{dict.aiQualification.eyebrow}</span>
-      <p className="mt-4 text-xl leading-snug font-medium text-balance text-foreground/90 sm:text-2xl">
+      <span className="block font-mono text-xs tracking-[0.2em] text-brand-2-dark uppercase">{dict.aiQualification.eyebrow}</span>
+      <p className="mt-4 text-xl leading-snug font-medium text-balance text-black/85 sm:text-2xl">
         {dict.aiQualification.intro}
       </p>
     </div>
@@ -162,16 +163,19 @@ export function AiQualification() {
 
   const table = (
     <div className="w-full overflow-x-auto lg:w-auto lg:max-w-[680px]">
-      <div className="min-w-[640px] overflow-hidden rounded-2xl border border-border">
+      {/* The table sits directly on the warm clip, so it carries its own light
+          scrim (bg-white/35 + blur) — without it the checks and rules read as
+          noise over whichever frame happens to be playing. */}
+      <div className="min-w-[640px] overflow-hidden rounded-2xl border border-black/15 bg-white/35 backdrop-blur-sm">
         <div
-          className="grid items-center border-b border-border bg-card/60"
+          className="grid items-center border-b border-black/15 bg-white/45"
           style={{ gridTemplateColumns: "1.6fr repeat(4, 1fr)" }}
         >
           <div className="px-5 py-3" />
           {CRITERIA.map((label) => (
             <div
               key={label}
-              className="px-2 py-3 text-center text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+              className="px-2 py-3 text-center text-xs font-semibold tracking-wide text-black/60 uppercase"
             >
               {label}
             </div>
@@ -187,11 +191,11 @@ export function AiQualification() {
                 <motion.div
                   aria-hidden
                   style={{ opacity: highlightOpacity }}
-                  className="absolute inset-0 border-y border-brand-2/40 bg-brand-2/10"
+                  className="absolute inset-0 border-y border-brand-2-dark/50 bg-brand-2-dark/15"
                 />
               )}
               <div
-                className="relative grid items-center border-b border-border/60 last:border-b-0"
+                className="relative grid items-center border-b border-black/10 last:border-b-0"
                 style={{ gridTemplateColumns: "1.6fr repeat(4, 1fr)" }}
               >
                 <div className="flex items-center gap-3 px-5 py-4">
@@ -230,7 +234,7 @@ export function AiQualification() {
                       />
                     )}
                   </div>
-                  <span className="text-sm font-medium text-white/90">{platformName}</span>
+                  <span className="text-sm font-medium text-black/85">{platformName}</span>
                 </div>
                 {CRITERIA.map((_, col) => (
                   <ResultCell key={col} row={row} col={col} progress={scrollYProgress} />
@@ -245,14 +249,18 @@ export function AiQualification() {
 
   if (reducedMotion) {
     return (
-      <section id="ai-qualification" className="relative border-t border-border py-24 sm:py-32">
+      <section
+        id="ai-qualification"
+        className="relative overflow-hidden border-t border-black/10 py-24 sm:py-32"
+      >
+        <SectionVideoBackground />
         {/* lg:pr-32 keeps this content clear of the fixed scroll-progress
             line, which occupies a strip at the far right edge from lg up. */}
-        <div className="mx-auto w-full max-w-6xl px-6 sm:px-10 lg:pr-32">
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 sm:px-10 lg:pr-32">
           <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
             {introText}
             <div className="w-full lg:w-auto">
-              <div className="mb-8 text-center font-mono text-sm text-brand-2">{dict.aiQualification.thinking}...</div>
+              <div className="mb-8 text-center font-mono text-sm text-brand-2-dark">{dict.aiQualification.thinking}...</div>
               {table}
             </div>
           </div>
@@ -263,12 +271,13 @@ export function AiQualification() {
 
   return (
     <section id="ai-qualification" ref={sectionRef} className="relative h-[460vh]">
-      <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden border-t border-border">
+      <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden border-t border-black/10">
+        <SectionVideoBackground />
         {/* lg:pr-32 keeps this content clear of the fixed scroll-progress
             line, which occupies a strip at the far right edge from lg up. */}
         <motion.div
           style={{ opacity: structureOpacity }}
-          className="mx-auto w-full max-w-6xl px-6 sm:px-10 lg:pr-32"
+          className="relative z-10 mx-auto w-full max-w-6xl px-6 sm:px-10 lg:pr-32"
         >
           <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
             {introText}
