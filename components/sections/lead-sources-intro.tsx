@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { LiquidGlassCard } from "@/components/kokonutui/liquid-glass-card";
-import { SectionVideoBackground } from "@/components/section-video-background";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 type LeadSource = {
@@ -75,8 +74,8 @@ const AND_MORE_IN_END = 0.463;
 // Part 2: the copy (title + "and more") clears out first, then all 12 cards
 // converge to the exact same X/Y — a true stack — and vanish together, so no
 // card lingers solo. The background clip is no longer part of this
-// choreography: it runs on its own clock behind everything (see
-// SectionVideoBackground), so these are purely the copy/card beats.
+// choreography: it lives in the wrapper that spans this section and the
+// next (see WarmVideoBackdrop), so these are purely the copy/card beats.
 const COPY_OUT_START = 0.637;
 const COPY_OUT_END = 0.672;
 const PULL_START = COPY_OUT_END;
@@ -252,12 +251,8 @@ export function LeadSourcesIntro() {
 
   if (reducedMotion) {
     return (
-      <section
-        id="how-it-works-intro"
-        className="relative overflow-hidden border-t border-black/10 py-24 sm:py-32"
-      >
-        <SectionVideoBackground />
-        <div className="relative z-10 mx-auto w-full max-w-5xl px-6 sm:px-10">
+      <section id="how-it-works-intro" className="relative py-24 sm:py-32">
+        <div className="mx-auto w-full max-w-5xl px-6 sm:px-10">
           {title}
           {grid}
           <p className="mt-8 text-center font-mono text-sm tracking-wide text-black/60">{dict.leadSourcesIntro.andMore}</p>
@@ -268,10 +263,8 @@ export function LeadSourcesIntro() {
 
   return (
     <section id="how-it-works-intro" ref={sectionRef} className="relative h-[480vh]">
-      <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden border-t border-black/10">
-        <SectionVideoBackground />
-
-        <div className="relative z-10 mx-auto w-full max-w-5xl px-6 sm:px-10">
+      <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden">
+        <div className="mx-auto w-full max-w-5xl px-6 sm:px-10">
           <motion.div style={{ opacity: titleOpacity }}>{title}</motion.div>
           {grid}
           <motion.p

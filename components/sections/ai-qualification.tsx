@@ -4,7 +4,6 @@ import { useRef } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { Check, X } from "lucide-react";
-import { SectionVideoBackground } from "@/components/section-video-background";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 type Platform = {
@@ -249,14 +248,10 @@ export function AiQualification() {
 
   if (reducedMotion) {
     return (
-      <section
-        id="ai-qualification"
-        className="relative overflow-hidden border-t border-black/10 py-24 sm:py-32"
-      >
-        <SectionVideoBackground />
+      <section id="ai-qualification" className="relative py-24 sm:py-32">
         {/* lg:pr-32 keeps this content clear of the fixed scroll-progress
             line, which occupies a strip at the far right edge from lg up. */}
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 sm:px-10 lg:pr-32">
+        <div className="mx-auto w-full max-w-6xl px-6 sm:px-10 lg:pr-32">
           <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
             {introText}
             <div className="w-full lg:w-auto">
@@ -271,13 +266,12 @@ export function AiQualification() {
 
   return (
     <section id="ai-qualification" ref={sectionRef} className="relative h-[460vh]">
-      <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden border-t border-black/10">
-        <SectionVideoBackground />
+      <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden">
         {/* lg:pr-32 keeps this content clear of the fixed scroll-progress
             line, which occupies a strip at the far right edge from lg up. */}
         <motion.div
           style={{ opacity: structureOpacity }}
-          className="relative z-10 mx-auto w-full max-w-6xl px-6 sm:px-10 lg:pr-32"
+          className="mx-auto w-full max-w-6xl px-6 sm:px-10 lg:pr-32"
         >
           <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
             {introText}

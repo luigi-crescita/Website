@@ -4,6 +4,7 @@ import { Hero } from "@/components/sections/hero";
 import { Capabilities } from "@/components/sections/capabilities";
 import { LeadSourcesIntro } from "@/components/sections/lead-sources-intro";
 import { AiQualification } from "@/components/sections/ai-qualification";
+import { WarmVideoBackdrop } from "@/components/warm-video-backdrop";
 import { FollowUp } from "@/components/sections/follow-up";
 import { AlwaysRunning } from "@/components/sections/always-running";
 import { Contact } from "@/components/sections/contact";
@@ -22,8 +23,11 @@ export default function Home() {
       <ScrollProgressLine />
       <Hero />
       <Capabilities />
-      <LeadSourcesIntro />
-      <AiQualification />
+      {/* One shared backdrop spans both — see WarmVideoBackdrop. */}
+      <WarmVideoBackdrop>
+        <LeadSourcesIntro />
+        <AiQualification />
+      </WarmVideoBackdrop>
       <FollowUp />
       <AlwaysRunning />
       <Contact />
