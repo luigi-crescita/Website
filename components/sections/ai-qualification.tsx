@@ -100,9 +100,9 @@ function ResultCell({ row, col, progress }: { row: number; col: number; progress
   return (
     <motion.div style={{ opacity, scale }} className="flex items-center justify-center">
       {isMatch ? (
-        <Check className="size-4 text-brand-2-dark" strokeWidth={2.5} />
+        <Check className="size-4 text-brand-2" strokeWidth={2.5} />
       ) : (
-        <X className="size-4 text-black/30" strokeWidth={2.5} />
+        <X className="size-4 text-white/30" strokeWidth={2.5} />
       )}
     </motion.div>
   );
@@ -162,19 +162,21 @@ export function AiQualification() {
 
   const table = (
     <div className="w-full overflow-x-auto lg:w-auto lg:max-w-[680px]">
-      {/* The table sits directly on the warm clip, so it carries its own light
-          scrim (bg-white/35 + blur) — without it the checks and rules read as
-          noise over whichever frame happens to be playing. */}
-      <div className="min-w-[640px] overflow-hidden rounded-2xl border border-black/15 bg-white/35 backdrop-blur-sm">
+      {/* The table sits directly on the warm clip, so it carries its own dark
+          scrim (bg-black/35 + blur) — without it the checks and rules read as
+          noise over whichever frame happens to be playing. It is the one
+          element in these two sections that stays dark-on-light-panel, so its
+          type and rules run white while everything around it runs black. */}
+      <div className="min-w-[640px] overflow-hidden rounded-2xl border border-white/15 bg-black/35 backdrop-blur-sm">
         <div
-          className="grid items-center border-b border-black/15 bg-white/45"
+          className="grid items-center border-b border-white/15 bg-black/45"
           style={{ gridTemplateColumns: "1.6fr repeat(4, 1fr)" }}
         >
           <div className="px-5 py-3" />
           {CRITERIA.map((label) => (
             <div
               key={label}
-              className="px-2 py-3 text-center text-xs font-semibold tracking-wide text-black/60 uppercase"
+              className="px-2 py-3 text-center text-xs font-semibold tracking-wide text-white/60 uppercase"
             >
               {label}
             </div>
@@ -190,11 +192,11 @@ export function AiQualification() {
                 <motion.div
                   aria-hidden
                   style={{ opacity: highlightOpacity }}
-                  className="absolute inset-0 border-y border-brand-2-dark/50 bg-brand-2-dark/15"
+                  className="absolute inset-0 border-y border-brand-2/40 bg-brand-2/10"
                 />
               )}
               <div
-                className="relative grid items-center border-b border-black/10 last:border-b-0"
+                className="relative grid items-center border-b border-white/10 last:border-b-0"
                 style={{ gridTemplateColumns: "1.6fr repeat(4, 1fr)" }}
               >
                 <div className="flex items-center gap-3 px-5 py-4">
@@ -233,7 +235,7 @@ export function AiQualification() {
                       />
                     )}
                   </div>
-                  <span className="text-sm font-medium text-black/85">{platformName}</span>
+                  <span className="text-sm font-medium text-white/85">{platformName}</span>
                 </div>
                 {CRITERIA.map((_, col) => (
                   <ResultCell key={col} row={row} col={col} progress={scrollYProgress} />
